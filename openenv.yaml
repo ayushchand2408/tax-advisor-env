@@ -1,0 +1,95 @@
+name: tax-advisor-env
+version: "1.0.0"
+description: >
+  A real-world tax filing environment where an AI agent prepares and submits
+  tax forms by retrieving financial data, classifying deductible expenses,
+  computing taxes, and filling out form fields. Three tasks of increasing
+  difficulty cover the full tax preparation workflow.
+
+tags:
+  - finance
+  - tax
+  - real-world
+  - multi-step
+  - tool-use
+
+author: "Hackathon Submission"
+license: MIT
+
+tasks:
+  - id: 0
+    name: "Tax Calculation (Easy)"
+    description: >
+      Given a taxpayer's income data, compute the correct tax owed.
+    difficulty: easy
+    max_steps: 10
+    score_range: [0.0, 1.0]
+    success_threshold: 1.0
+
+  - id: 1
+    name: "Deduction Finder (Medium)"
+    description: >
+      Given a list of raw expense receipts, classify each as deductible
+      or non-deductible. Score = fraction correctly classified.
+    difficulty: medium
+    max_steps: 20
+    score_range: [0.0, 1.0]
+    success_threshold: 0.8
+
+  - id: 2
+    name: "Complete Tax Filing (Hard)"
+    description: >
+      Full end-to-end tax filing: retrieve income data, classify deductions,
+      compute tax owed, fill all form fields, and submit. All steps required.
+    difficulty: hard
+    max_steps: 30
+    score_range: [0.0, 1.0]
+    success_threshold: 1.0
+
+action_space:
+  type: typed
+  model: TaxAction
+  fields:
+    - name: tool_name
+      type: str
+      description: Name of the tool to call
+    - name: arguments
+      type: dict
+      description: Arguments for the tool
+
+observation_space:
+  type: typed
+  model: TaxObservation
+  fields:
+    - name: data
+      type: dict
+      description: Structured result from the tool
+    - name: message
+      type: str
+      description: Human-readable description
+    - name: success
+      type: bool
+      description: Whether the action succeeded
+
+reward:
+  type: dense_and_sparse
+  description: >
+    +0.05 for data retrieval actions (get_income_data, get_receipts, search_tax_code).
+    +0.2  for each correct deduction classification or form field filled.
+    +0.3  for computing tax within 5% of correct value.
+    +0.5  for submitting a complete form.
+    +0.0 to +1.0 completion bonus proportional to progress at episode end.
+    -0.05 to -0.1 penalty for incorrect actions.
+
+environment:
+  entry_point: env:TaxAdvisorEnv
+  reset_returns: TaxObservation
+  step_returns: [TaxObservation, float, bool, dict]
+  state_returns: TaxState
+
+docker:
+  image: tax-advisor-env
+  base: python:3.11-slim
+
+huggingface:
+  space: openenv-tax-advisor-env
