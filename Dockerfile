@@ -13,8 +13,10 @@ COPY test_env.py .
 COPY rl_agent.py .
 COPY train.py .
 COPY openenv.yaml .
+COPY pyproject.toml .
 COPY README.md .
+COPY server/ ./server/
 
 EXPOSE 7860
 
-CMD ["python", "app.py"]
+CMD ["python", "server/app.py"]
