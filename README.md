@@ -1,3 +1,11 @@
+---
+title: Tax Advisor Env
+emoji: 💰
+colorFrom: green
+colorTo: blue
+sdk: docker
+pinned: false
+---
 # TaxAdvisorEnv
 
 A real-world OpenEnv-compliant environment where an AI agent prepares and files taxes. Built for the Meta OpenEnv Hackathon.
@@ -212,3 +220,18 @@ tax-advisor-env/
 ## License
 
 MIT
+
+
+## RL Training Results
+
+The Q-Learning agent trains from scratch and improves over 600 episodes:
+
+![Learning Curve](results/learning_curve.png)
+
+| Task | Final Score |
+|------|------------|
+| Task 0 — Easy | 1.00 |
+| Task 1 — Medium | 0.33 |
+| Task 2 — Hard | 0.80 |
+
+Run training yourself: `python train.py`
