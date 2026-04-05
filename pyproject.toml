@@ -16,10 +16,11 @@ dependencies = [
     "numpy>=1.24",
     "fastapi>=0.100.0",
     "uvicorn>=0.23.0",
+    "openenv-core>=0.2.0",
 ]
 
-[project.optional-dependencies]
-dev = ["pytest"]
+[project.scripts]
+server = "app:app"
 
 [tool.openenv]
 name = "tax-advisor-env"
