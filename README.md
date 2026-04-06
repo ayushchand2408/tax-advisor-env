@@ -168,7 +168,7 @@ Expected baseline scores (gpt-4o-mini):
 | Task | Score |
 |------|-------|
 | Task 0 (Easy) | ~0.90 |
-| Task 1 (Medium) | ~0.75 |
+| Task 1 (Medium) | ~0.80 |
 | Task 2 (Hard) | ~0.60 |
 
 ---
