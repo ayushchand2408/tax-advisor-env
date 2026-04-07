@@ -347,7 +347,7 @@ class TaxAdvisorEnv:
     def _completion_bonus(self) -> float:
         """Dense + sparse reward: partial progress + full completion bonus."""
         progress = self._state.fields_filled / max(self._state.total_fields, 1)
-        return round(1.0 * progress, 4)  # up to +1.0 for full completion
+        return round(1.0 * progress, 4)  # up to +1.0 for full completions
 
 
 # ─── Graders (score 0.0–1.0) ─────────────────────────────────────────────────
