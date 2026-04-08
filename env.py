@@ -126,9 +126,9 @@ class TaxAdvisorEnv:
 
     def reset(self) -> TaxObservation:
         """Reset environment to initial state. Returns opening observation."""
-        # total_deductions = total receipts to classify (not just deductible ones)
-        # This ensures grade_task score stays within [0.0, 1.0]
-        total_deductions = len(self.profile["receipts"])
+        total_deductions = sum(
+            1 for r in self.profile["receipts"] if r["deductible"]
+        )
         self._form_fields = {}
         self._state = TaxState(
             task_id=self.task_id,
@@ -339,7 +339,6 @@ class TaxAdvisorEnv:
         if self.task_id == 0:
             return self._state.fields_filled >= 1
         elif self.task_id == 1:
-            # Done when all receipts classified (deductions_found tracks all correct ones)
             return self._state.deductions_found >= self._state.total_deductions
         else:
             return self._state.submitted
@@ -347,25 +346,30 @@ class TaxAdvisorEnv:
     def _completion_bonus(self) -> float:
         """Dense + sparse reward: partial progress + full completion bonus."""
         progress = self._state.fields_filled / max(self._state.total_fields, 1)
-        return round(1.0 * progress, 4)  # up to +1.0 for full completions
+        return round(1.0 * progress, 4)  # up to +1.0 for full completion
 
 
 # ─── Graders (score 0.0–1.0) ─────────────────────────────────────────────────
 
 def grade_task(env: TaxAdvisorEnv) -> float:
     """
-    Returns a score in [0.0, 1.0] for the current episode.
-    Task 0: fraction of tax computed correctly.
+    Returns a score strictly in (0.0, 1.0) — never exactly 0 or 1.
+    Task 0: tax computed correctly.
     Task 1: fraction of deductions correctly classified.
-    Task 2: fraction of form fields filled correctly + submission.
+    Task 2: fraction of form fields filled + submission bonus.
     """
     s = env.state()
+
     if s.task_id == 0:
-        return 1.0 if s.fields_filled >= 1 else 0.0
+        raw = 0.95 if s.fields_filled >= 1 else 0.05
     elif s.task_id == 1:
-        # Score = fraction of receipts correctly classified, capped at 1.0
-        return round(min(s.deductions_found / max(s.total_deductions, 1), 1.0), 4)
+        fraction = s.deductions_found / max(s.total_deductions, 1)
+        raw = fraction
     else:
         field_score = s.fields_filled / max(s.total_fields, 1)
         submit_bonus = 0.2 if s.submitted else 0.0
-        return round(min(field_score * 0.8 + submit_bonus, 1.0), 4)
+        raw = min(field_score * 0.8 + submit_bonus, 0.99)
+
+    # Clamp strictly to (0.01, 0.99) — never exactly 0 or 1
+    clamped = max(0.01, min(0.99, raw))
+    return round(clamped, 4)
